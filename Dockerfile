@@ -14,6 +14,7 @@ FROM gcr.io/distroless/base-debian11 AS build-release-stage
 WORKDIR /
 
 COPY --from=build-stage /bin/tb /bin/tb
+COPY --from=build-stage /app/conf.yml /etc/tb.yml
 
 EXPOSE 8080
 
