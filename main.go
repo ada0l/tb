@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"net/http"
 	"net/url"
@@ -10,8 +11,15 @@ import (
 	"github.com/ada0l/tb/tb"
 )
 
+var (
+	configPath string
+)
+
 func main() {
-	config, err := tb.LoadConfigFromFile("./conf.yml")
+	flag.StringVar(&configPath, "config", "/etc/tb.yml", "path to config file")
+	flag.Parse()
+
+	config, err := tb.LoadConfigFromFile(configPath)
 
 	if err != nil {
 		log.Fatalf("Failed to load config file: %v", err)
