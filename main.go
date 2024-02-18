@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"net/url"
@@ -12,23 +11,23 @@ import (
 )
 
 func main() {
-	port := 3200
-	addr := fmt.Sprintf("localhost:%d", port)
-	urls := make([]*url.URL, 0)
+	config, err := tb.LoadConfigFromFile("./conf.yml")
 
-	for i := 1; i < 4; i++ {
-		backendUrl, err := url.Parse(fmt.Sprintf("http://localhost:%d", 3200+i))
-		if err != nil {
-			log.Fatal(err)
-			os.Exit(1)
-		}
-		urls = append(urls, backendUrl)
+	if err != nil {
+		log.Fatalf("Failed to load config file: %v", err)
+		os.Exit(1)
 	}
+	log.Println("Config loaded...")
 
 	roundServerPool := &tb.RoundServerPool{}
 	loadBalance := tb.GetLoadBalanceFunction(roundServerPool)
 
-	for _, backendUrl := range urls {
+	for _, backend := range config.Backends {
+		backendUrl, err := url.Parse(backend)
+		if err != nil {
+			log.Fatalf("Failed to parse backend url: %v", err)
+			os.Exit(1)
+		}
 		proxy := tb.GetProxy(roundServerPool, loadBalance, backendUrl)
 		backend := &tb.Backend{
 			URL:          backendUrl,
@@ -39,7 +38,7 @@ func main() {
 	}
 
 	server := http.Server{
-		Addr:    addr,
+		Addr:    config.Host,
 		Handler: http.HandlerFunc(loadBalance),
 	}
 
